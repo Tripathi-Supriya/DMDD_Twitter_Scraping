@@ -5,6 +5,8 @@ import pip
 package = 'tweepy'  # Just replace the package name with any package to install it.
 pip.main(['install', package])
 
+#Twitter keys details
+
 consumer_key = "eYR5Ni67Nd12rgEb9H8LIapD8"
 consumer_secret = "CPeb11EARYCvVW6AyidiX3WvxGRxa8Aq7bi4ihYdJs3Fv2DfBn"
 Bearer_Token = "AAAAAAAAAAAAAAAAAAAAAL6XiQEAAAAACK8IPhfixHObQ4cTIXWHy0RuYHU%3DlFlmefdzhrX3wwnc63PcdZpmVoUNV2S6h7fg5vKrGhdWFwVPag"
@@ -26,13 +28,14 @@ for tweet in tweepy.Cursor(api.search_tweets, q="#neucourserepo", count=100,  # 
 tweetdf = pd.DataFrame(outtweets, columns=["ID", "Created_at", "Text", "Location"])
 df = tweetdf.to_csv("tweet_csv.csv", sep='\t', encoding='utf-8')
 
-#sql connection
+#Setting up the MySql connection
+
 import mysql.connector
 
 neucourse = mysql.connector.connect(host='localhost', user='root', passwd='password', database='neu_course_repository')
 mycursor = neucourse.cursor()
 
-#test table
+#test table (used for testing only, not a part of UML)
 
 mycursor.execute("Truncate neu_course_repository.test_table1")
 neucourse.commit()
@@ -49,7 +52,7 @@ for tweet in tweepy.Cursor(api.search_tweets, q="#neucourserepo", count=100,  # 
                            lang="en").items():
     outtweets.append([tweet.id_str, tweet.created_at, tweet.text.encode("utf-8"), tweet.user.location])
 
-#users_table
+#users_table: Has details about the followers of NEU Course Repo page
 
 user = api.get_user(screen_name="NEU_CourseRepo")
 users =[]
@@ -57,10 +60,12 @@ for follower in user.followers():
     users.append([follower.screen_name, follower.name, follower.profile_image_url, follower.description,
                   follower.followers_count, follower.following])
 
+#storing results in dataframe
+
 userdf = pd.DataFrame(users, columns=["Twitter_handle", "name", "profile_image", "description", "followers_count", "following_count"])
 userdf
 
-print("Done")
+#Exporting the dataframe to MySql database using the connection established above
 
 mycursor.execute("Truncate neu_course_repository.User")
 neucourse.commit()
@@ -80,8 +85,11 @@ for tweet in tweepy.Cursor(api.search_tweets, q="#neucourserepo", count=100,  # 
     outweets_user.append(
         [tweet.id_str, tweet.author.screen_name, tweet.source_url, tweet.author.name, tweet.created_at, tweet.text])
 
+#storing results in dataframe
 tweet_user = pd.DataFrame(outweets_user,columns = ["tweet_id","twitter_handle","tweet_source_url","name","created_at","tweet"])
-tweet_user
+
+
+#Exporting the dataframe to MySql database using the connection established above
 
 mycursor.execute("Truncate neu_course_repository.Tweet_Details")
 neucourse.commit()
@@ -93,7 +101,7 @@ for i,row in tweet_user.iterrows():
 
 print("Record inserted in Tweet Details Table")
 
-# tags table
+# tags table: Gets the relevant tags from user tweets
 
 tags = []
 tweet_tags = []
@@ -110,7 +118,10 @@ for tweet in tweepy.Cursor(api.search_tweets,
     else:
         tags.append([tweet.id_str, s])
 
+#storing results in dataframe
 tweet_tags = pd.DataFrame(tags,columns = ["ID","Tags"])
+
+#Exporting the dataframe to MySql database using the connection established above
 
 mycursor.execute("Truncate neu_course_repository.Tweet_Tag")
 neucourse.commit()
@@ -122,15 +133,17 @@ for i,row in tweet_tags.iterrows():
 
 print("Record inserted in tweet tag table")
 
-# tweet mentions
+# tweet mentions: stores tweet details in database
 
 outweets_mentions = []
 for tweet in tweepy.Cursor(api.search_tweets, q="#neucourserepo", count=100,  # The q variable holds the hashtag
                            lang="en").items():
     outweets_mentions.append([tweet.id_str, tweet.author.screen_name, tweet.author.name, tweet.in_reply_to_screen_name])
 
+#storing results in dataframe
 mentiondf = pd.DataFrame(outweets_mentions,columns = ["tweet_id","twitter_handler", "source_user", "target_user"])
-mentiondf
+
+#Exporting the dataframe to MySql database using the connection established above
 
 mycursor.execute("Truncate neu_course_repository.Tweet_Mention")
 neucourse.commit()
